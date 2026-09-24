@@ -1,0 +1,9 @@
+# Binario compilado
+/bookzilla
+/bookzilla.exe
+*.exe
+*.out
+
+# Carpetas de runtime (se autogestionan al arrancar)
+/images/
+data/*.tmp

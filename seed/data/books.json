@@ -1,0 +1,86 @@
+[
+  {
+    "id": "don-quijote-de-la-mancha",
+    "title": "Don Quijote de la Mancha",
+    "author": "Miguel de Cervantes",
+    "year": 1605,
+    "cover": "images/cover-01.svg"
+  },
+  {
+    "id": "cien-anos-de-soledad",
+    "title": "Cien años de soledad",
+    "author": "Gabriel García Márquez",
+    "year": 1967,
+    "cover": "images/cover-02.svg"
+  },
+  {
+    "id": "1984",
+    "title": "1984",
+    "author": "George Orwell",
+    "year": 1949,
+    "cover": "images/cover-03.svg"
+  },
+  {
+    "id": "el-gran-gatsby",
+    "title": "El Gran Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "year": 1925,
+    "cover": "images/cover-04.svg"
+  },
+  {
+    "id": "cronica-de-una-muerte-anunciada",
+    "title": "Crónica de una muerte anunciada",
+    "author": "Gabriel García Márquez",
+    "year": 1981,
+    "cover": "images/cover-05.svg"
+  },
+  {
+    "id": "rayuela",
+    "title": "Rayuela",
+    "author": "Julio Cortázar",
+    "year": 1963,
+    "cover": "images/cover-06.svg"
+  },
+  {
+    "id": "la-metamorfosis",
+    "title": "La metamorfosis",
+    "author": "Franz Kafka",
+    "year": 1915,
+    "cover": "images/cover-07.svg"
+  },
+  {
+    "id": "pedro-paramo",
+    "title": "Pedro Páramo",
+    "author": "Juan Rulfo",
+    "year": 1955,
+    "cover": "images/cover-08.svg"
+  },
+  {
+    "id": "orgullo-y-prejuicio",
+    "title": "Orgullo y prejuicio",
+    "author": "Jane Austen",
+    "year": 1813,
+    "cover": "images/cover-09.svg"
+  },
+  {
+    "id": "el-nombre-de-la-rosa",
+    "title": "El Nombre de la Rosa",
+    "author": "Umberto Eco",
+    "year": 1980,
+    "cover": "images/cover-10.svg"
+  },
+  {
+    "id": "fahrenheit-451",
+    "title": "Fahrenheit 451",
+    "author": "Ray Bradbury",
+    "year": 1953,
+    "cover": "images/cover-11.svg"
+  },
+  {
+    "id": "la-casa-de-los-espiritus",
+    "title": "La casa de los espíritus",
+    "author": "Isabel Allende",
+    "year": 1982,
+    "cover": "images/cover-12.svg"
+  }
+]
