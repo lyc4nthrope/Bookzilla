@@ -1,6 +1,13 @@
 :root {
+  /* Paleta con significado:
+     primary: texto e identidad (encabezado, pie, servidor).
+     accent:  SOLO acciones principales (botones), para que el naranja
+              siempre signifique "esto se puede presionar".
+     muted:   datos informativos que no son interactivos (año). */
   --bz-primary: #1f2a44;
   --bz-accent: #e8a33d;
+  --bz-muted-bg: #e7eaf1;
+  --bz-muted-text: #4a5468;
   --bz-surface: #f7f5f0;
   --bz-card: #ffffff;
 }
@@ -23,8 +30,10 @@ body {
   font-size: 1.4rem;
 }
 
-.group-field {
-  color: #5b6478;
+/* Texto informativo del encabezado: gris oscuro con buen contraste sobre
+   blanco (Bootstrap "disabled" lo aclaraba y parecía un enlace inactivo). */
+.header-meta {
+  color: var(--bz-muted-text);
   font-size: 0.9rem;
 }
 
@@ -72,8 +81,9 @@ body {
   min-height: 2.5em;
 }
 
+/* El año es un dato, no una acción: color neutro, no el naranja de los botones. */
 .year-badge {
-  background-color: var(--bz-accent);
+  background-color: var(--bz-muted-bg);
   color: var(--bz-primary);
   font-weight: 600;
   font-size: 0.85rem;
@@ -89,8 +99,9 @@ body {
   color: rgba(255, 255, 255, 0.75);
 }
 
+/* Mismo significado que en el encabezado, invertido para el fondo oscuro. */
 .site-footer .host-badge {
-  background-color: var(--bz-accent);
+  background-color: #fff;
   color: var(--bz-primary);
 }
 
