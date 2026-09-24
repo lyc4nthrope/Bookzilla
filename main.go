@@ -43,7 +43,7 @@ var group = Group{
 		"William Carmona Diaz",
 	},
 	Course:     "Computación en la Nube",
-	Professor:  "Ing. Carlos Eduardo Gómez Montoya",
+	Professor:  "Ing. Carlos Eduardo Gómez Montoya Mg, Phd",
 	University: "Universidad del Quindío",
 	Program:    "Ingeniería de Sistemas y Computación",
 	Term:       "2026-2",
