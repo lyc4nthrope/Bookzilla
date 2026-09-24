@@ -1,5 +1,9 @@
+// Comportamiento del lado del cliente: búsqueda, avisos PRG, modal de
+// alta/edición y confirmación de borrado. El servidor valida todo de nuevo.
 (function () {
   "use strict";
+
+  // ===== Búsqueda: oculta tarjetas sin recargar (ignora mayúsculas y tildes)
 
   var input = document.getElementById("book-search");
   var grid = document.getElementById("book-grid");
@@ -39,6 +43,7 @@
     input.addEventListener("input", filter);
   }
 
+  // ===== Avisos: lee ?msg=...&motivo=... que deja el redirect del servidor
   var flash = document.getElementById("flash");
   var flashText = document.getElementById("flash-text");
 
@@ -66,11 +71,14 @@
     } else {
       showFlash("alert-danger", motivo || "No se pudo completar la operación.");
     }
+    // Limpia la URL para que recargar no repita el aviso.
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, "", window.location.pathname);
     }
   })();
 
+  // Envía el formulario con fetch y sigue el redirect del servidor; si no
+  // hay fetch, el formulario HTML normal funciona igual.
   function postAndRedirect(url, body, button) {
     if (button) button.disabled = true;
     fetch(url, { method: "POST", body: body, redirect: "follow" })
@@ -88,6 +96,7 @@
       });
   }
 
+  // ===== Modal: el mismo formulario sirve para agregar y para editar
   var formModal = document.getElementById("bookFormModal");
   var bookForm = document.getElementById("book-form");
   var formTitle = document.getElementById("bookFormTitle");
@@ -106,12 +115,12 @@
       titleInput.value = book.title;
       authorInput.value = book.author;
       yearInput.value = book.year;
-      coverHint.textContent = "Dejala vacía para conservar la portada actual. Formatos: JPEG, PNG, WebP, GIF o SVG (máx. 5 MB).";
+      coverHint.textContent = "Déjala vacía para conservar la portada actual. Formatos: JPEG, PNG, WebP o GIF (máx. 5 MB).";
       submitBtn.textContent = "Guardar cambios";
     } else {
       bookForm.action = "/books";
       formTitle.textContent = "Agregar libro";
-      coverHint.textContent = "Formatos admitidos: JPEG, PNG, WebP, GIF o SVG (máx. 5 MB).";
+      coverHint.textContent = "Formatos admitidos: JPEG, PNG, WebP o GIF (máx. 5 MB).";
       submitBtn.textContent = "Guardar libro";
     }
     submitBtn.disabled = false;
@@ -144,6 +153,7 @@
     });
   }
 
+  // ===== Eliminar: pide confirmación antes de enviar el POST
   Array.prototype.forEach.call(document.querySelectorAll("[data-book-delete]"), function (form) {
     var button = form.querySelector("button");
     if (!button) return;

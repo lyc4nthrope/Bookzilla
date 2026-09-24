@@ -13,14 +13,20 @@ import (
 	"unicode"
 )
 
+// Rutas relativas al directorio de trabajo: en la VM el servicio systemd fija
+// ese directorio en el disco de datos (ver deploy/bookzilla.service).
 const (
 	booksFile = "data/books.json"
 	imagesDir = "images"
 	seedDir   = "seed"
 )
 
+// booksMu serializa lectura-modificación-escritura del JSON para que dos
+// solicitudes simultáneas no se pisen los cambios.
 var booksMu sync.Mutex
 
+// Book es un libro del catálogo. Cover es la ruta de la portada dentro de
+// images/, tal como pide el enunciado.
 type Book struct {
 	ID     string `json:"id"`
 	Title  string `json:"title"`
@@ -29,6 +35,7 @@ type Book struct {
 	Cover  string `json:"cover"`
 }
 
+// rawBook tolera ids faltantes o numéricos en un JSON editado a mano.
 type rawBook struct {
 	ID     json.RawMessage `json:"id"`
 	Title  string          `json:"title"`
@@ -37,6 +44,7 @@ type rawBook struct {
 	Cover  string          `json:"cover"`
 }
 
+// id normaliza el id a string; devuelve "" si falta o no es válido.
 func (r rawBook) id() string {
 	raw := strings.TrimSpace(string(r.ID))
 	if raw == "" || raw == "null" {
@@ -86,6 +94,8 @@ func loadBooks(filename string) ([]Book, error) {
 	return books, nil
 }
 
+// saveBooks escribe a un archivo temporal y luego lo renombra: el rename es
+// atómico, así un corte a mitad de escritura nunca deja el JSON corrupto.
 func saveBooks(filename string, books []Book) error {
 	data, err := json.MarshalIndent(books, "", "  ")
 	if err != nil {
@@ -103,6 +113,8 @@ func saveBooks(filename string, books []Book) error {
 	return nil
 }
 
+// ensureSeed crea data/ e images/ y copia la semilla embebida, pero solo los
+// archivos que faltan: nunca pisa datos que el usuario ya editó.
 func ensureSeed() error {
 	for _, dir := range []string{filepath.Dir(booksFile), imagesDir} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -129,6 +141,7 @@ func ensureSeed() error {
 	})
 }
 
+// writeIfMissing usa O_EXCL: crea el archivo solo si no existe.
 func writeIfMissing(dest string, data []byte) error {
 	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
 	if err != nil {
@@ -144,6 +157,7 @@ func writeIfMissing(dest string, data []byte) error {
 	return f.Close()
 }
 
+// removeCoverIfUnused borra una portada de images/ si ya ningún libro la usa.
 func removeCoverIfUnused(cover string, books []Book) {
 	if cover == "" || !withinImages(cover) {
 		return
@@ -158,6 +172,8 @@ func removeCoverIfUnused(cover string, books []Book) {
 	}
 }
 
+// withinImages evita que una ruta del JSON (p. ej. "../main.go") apunte
+// fuera de images/ antes de borrar un archivo.
 func withinImages(path string) bool {
 	rel, err := filepath.Rel(imagesDir, filepath.Clean(filepath.FromSlash(path)))
 	if err != nil {
@@ -183,6 +199,8 @@ func indexOfBook(books []Book, id string) int {
 	return -1
 }
 
+// uniqueID genera un id legible a partir del título ("cien-anos-de-soledad")
+// y agrega -2, -3... si ya existe.
 func uniqueID(title string, taken map[string]bool) string {
 	base := slugify(title)
 	if base == "" {
@@ -204,6 +222,7 @@ var asciiFallback = map[rune]rune{
 	'ç': 'c', 'ñ': 'n', 'ß': 's',
 }
 
+// slugify pasa el título a minúsculas sin tildes y separa las palabras con guiones.
 func slugify(title string) string {
 	var b strings.Builder
 	pendingDash := false

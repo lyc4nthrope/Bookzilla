@@ -9,7 +9,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-  <!-- ===== HEADER: datos del grupo (EDITAR con los datos reales del grupo) ===== -->
+  <!-- ===== ENCABEZADO: nombre de la app, materia y servidor que responde ===== -->
   <header class="site-header border-bottom">
     <nav class="navbar navbar-expand-lg">
       <div class="container">
@@ -22,18 +22,11 @@
           <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
             <li class="nav-item">
               <span class="nav-link disabled group-field">
-                Materia: <strong>[Nombre de la materia / actividad]</strong>
+                <strong>{{.Group.Course}}</strong> · {{.Group.Term}}
               </span>
             </li>
             <li class="nav-item">
-              <span class="nav-link disabled group-field">
-                Comisión: <strong>[Comisión X]</strong>
-              </span>
-            </li>
-            <li class="nav-item">
-              <span class="nav-link disabled group-field">
-                Ciclo lectivo: <strong>[20XX — 20XX]</strong>
-              </span>
+              <span class="nav-link disabled group-field">{{.Group.University}}</span>
             </li>
             <li class="nav-item">
               <span class="badge host-badge" title="Nombre de host obtenido con os.Hostname()">
@@ -59,8 +52,7 @@
         <div class="col-12 col-lg-6">
           <h1 class="display-5 fw-bold mb-2">Catálogo de libros</h1>
           <p class="mb-0 opacity-75">
-            Grupo X — Integrantes: <strong>[Apellido, Apellido, Apellido]</strong>.
-            Explorá los títulos del curso: buscá por título o autor con el filtro.
+            Explora los títulos del catálogo: busca por título o autor con el filtro.
           </p>
         </div>
         <div class="col-12 col-lg-6">
@@ -114,19 +106,22 @@
     </p>
   </main>
 
-  <!-- ===== FOOTER / BANNER INFERIOR: datos del grupo (EDITAR) ===== -->
+  <!-- ===== BANNER INFERIOR: datos del grupo de trabajo (los define main.go) ===== -->
   <footer class="site-footer mt-auto">
     <div class="container py-4">
       <div class="row g-3 align-items-center">
         <div class="col-12 col-md-5">
-          <p class="mb-1 fw-semibold">Grupo X — Integrantes</p>
-          <p class="mb-0 small opacity-75">
-            [Apellido y nombre 1] · [Apellido y nombre 2] · [Apellido y nombre 3]
-          </p>
+          <p class="mb-1 fw-semibold">Integrantes del grupo</p>
+          <ul class="list-unstyled mb-0 small opacity-75">
+            {{range .Group.Members}}<li>{{.}}</li>{{end}}
+          </ul>
         </div>
         <div class="col-12 col-md-4">
-          <p class="mb-1 fw-semibold">[Nombre de la materia / actividad]</p>
-          <p class="mb-0 small opacity-75">Comisión: [Comisión X] · Ciclo: [20XX — 20XX]</p>
+          <p class="mb-1 fw-semibold">{{.Group.Course}} · {{.Group.Term}}</p>
+          <p class="mb-0 small opacity-75">
+            {{.Group.Professor}}<br>
+            {{.Group.Program}} — {{.Group.University}}
+          </p>
         </div>
         <div class="col-12 col-md-3 text-md-end">
           <span class="badge host-badge" title="Nombre de host obtenido con os.Hostname()">
@@ -165,9 +160,9 @@
             <div class="mb-2">
               <label for="book-cover" class="form-label">Portada</label>
               <input type="file" class="form-control" id="book-cover" name="cover"
-                accept="image/*">
+                accept="image/jpeg,image/png,image/webp,image/gif">
               <div class="form-text" id="cover-hint">
-                Formatos admitidos: JPEG, PNG, WebP, GIF o SVG (máx. 5 MB).
+                Formatos admitidos: JPEG, PNG, WebP o GIF (máx. 5 MB).
               </div>
             </div>
           </div>

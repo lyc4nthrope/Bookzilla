@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -17,6 +16,7 @@ import (
 	"unicode/utf8"
 )
 
+// Límites de validación: el servidor no confía en lo que valida el navegador.
 const (
 	maxImageBytes = 5 << 20
 	maxFormBytes  = maxImageBytes + 64<<10
@@ -25,14 +25,19 @@ const (
 	maxYear       = 2100
 )
 
+// imageExtensions lista los formatos de portada que se aceptan al subir. SVG
+// queda fuera a propósito: es XML y puede traer <script>; servido desde este
+// mismo dominio permitiría XSS. Las portadas SVG de la semilla son propias y
+// confiables, por eso siguen funcionando.
 var imageExtensions = map[string]string{
-	"image/jpeg":    ".jpg",
-	"image/png":     ".png",
-	"image/webp":    ".webp",
-	"image/gif":     ".gif",
-	"image/svg+xml": ".svg",
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
+	"image/webp": ".webp",
+	"image/gif":  ".gif",
 }
 
+// formError es un error de validación que se muestra al usuario: code elige
+// el estilo del aviso en main.js y motivo es el texto legible.
 type formError struct {
 	code   string
 	motivo string
@@ -40,12 +45,17 @@ type formError struct {
 
 func (e *formError) Error() string { return e.motivo }
 
+// bookForm es el formulario ya validado: el libro y, si se subió, la portada.
 type bookForm struct {
 	Book     Book
 	Image    []byte
 	ImageExt string
 }
 
+// Los tres handlers siguen el mismo esquema: validar el formulario, tomar el
+// mutex, releer el JSON, modificar la lista, guardarla y redirigir (PRG).
+
+// handleCreateBook agrega un libro nuevo con un id derivado del título.
 func handleCreateBook(w http.ResponseWriter, r *http.Request) {
 	form, ferr := parseBookForm(w, r)
 	if ferr != nil {
@@ -82,6 +92,8 @@ func handleCreateBook(w http.ResponseWriter, r *http.Request) {
 	redirectMsg(w, r, "ok-agregado", "")
 }
 
+// handleEditBook reemplaza los datos de un libro; si no llega portada nueva,
+// conserva la anterior.
 func handleEditBook(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	form, ferr := parseBookForm(w, r)
@@ -130,6 +142,7 @@ func handleEditBook(w http.ResponseWriter, r *http.Request) {
 	redirectMsg(w, r, "ok-editado", "")
 }
 
+// handleDeleteBook quita un libro y borra su portada si ningún otro la usa.
 func handleDeleteBook(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
@@ -158,6 +171,8 @@ func handleDeleteBook(w http.ResponseWriter, r *http.Request) {
 	redirectMsg(w, r, "ok-eliminado", "")
 }
 
+// redirectMsg implementa Post/Redirect/Get: tras un POST redirige a "/" con el
+// resultado en la URL, así recargar la página no reenvía el formulario.
 func redirectMsg(w http.ResponseWriter, r *http.Request, msg, motivo string) {
 	query := url.Values{"msg": {msg}}
 	if motivo != "" {
@@ -166,6 +181,8 @@ func redirectMsg(w http.ResponseWriter, r *http.Request, msg, motivo string) {
 	http.Redirect(w, r, "/?"+query.Encode(), http.StatusFound)
 }
 
+// parseBookForm lee y valida título, autor, año y portada. Acepta multipart
+// (con archivo) y formularios simples; MaxBytesReader corta cuerpos gigantes.
 func parseBookForm(w http.ResponseWriter, r *http.Request) (*bookForm, *formError) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
 	if err := r.ParseMultipartForm(maxFormBytes); err != nil {
@@ -205,6 +222,7 @@ func parseBookForm(w http.ResponseWriter, r *http.Request) (*bookForm, *formErro
 	}, nil
 }
 
+// textField exige un texto no vacío de hasta maxFieldRunes caracteres.
 func textField(r *http.Request, name, label string) (string, *formError) {
 	value := strings.TrimSpace(r.FormValue(name))
 	if value == "" {
@@ -216,6 +234,7 @@ func textField(r *http.Request, name, label string) (string, *formError) {
 	return value, nil
 }
 
+// yearField exige un año entero dentro de [minYear, maxYear].
 func yearField(r *http.Request) (int, *formError) {
 	value := strings.TrimSpace(r.FormValue("year"))
 	year, err := strconv.Atoi(value)
@@ -228,6 +247,7 @@ func yearField(r *http.Request) (int, *formError) {
 	return year, nil
 }
 
+// readUpload devuelve la portada subida y su extensión, o nil si no se envió.
 func readUpload(r *http.Request) ([]byte, string, *formError) {
 	if r.MultipartForm == nil || r.MultipartForm.File == nil {
 		return nil, "", nil
@@ -252,31 +272,17 @@ func readUpload(r *http.Request) ([]byte, string, *formError) {
 	if len(data) > maxImageBytes {
 		return nil, "", &formError{"err-imagen", "La imagen no puede superar 5 MB"}
 	}
-	head := data
-	if len(head) > 512 {
-		head = head[:512]
-	}
-	ext, ok := imageExtension(http.DetectContentType(head), head)
+	// El formato se decide por el contenido real (firma de los primeros bytes),
+	// no por la extensión ni por el Content-Type que declara el navegador.
+	ext, ok := imageExtensions[http.DetectContentType(data)]
 	if !ok {
-		return nil, "", &formError{"err-imagen", "Formato de imagen no admitido: usá JPEG, PNG, WebP, GIF o SVG"}
+		return nil, "", &formError{"err-imagen", "Formato de imagen no admitido: usa JPEG, PNG, WebP o GIF"}
 	}
 	return data, ext, nil
 }
 
-// DetectContentType no emite image/svg+xml (devuelve text/plain o text/xml),
-// por eso los XML que contienen <svg> se aceptan como SVG.
-func imageExtension(contentType string, head []byte) (string, bool) {
-	if ext, ok := imageExtensions[contentType]; ok {
-		return ext, true
-	}
-	if contentType == "text/plain; charset=utf-8" || contentType == "text/xml; charset=utf-8" {
-		if bytes.Contains(bytes.ToLower(head), []byte("<svg")) {
-			return ".svg", true
-		}
-	}
-	return "", false
-}
-
+// saveImage guarda la portada con un nombre aleatorio generado por el
+// servidor, así el nombre que envía el usuario nunca llega al sistema de archivos.
 func saveImage(data []byte, ext string) (string, error) {
 	var buf [16]byte
 	if _, err := rand.Read(buf[:]); err != nil {

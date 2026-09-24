@@ -1,0 +1,20 @@
+# Servicio systemd para ejecutar Bookzilla en la VM Debian.
+# Instalar en /etc/systemd/system/bookzilla.service (ver README, "Despliegue en VirtualBox").
+[Unit]
+Description=Bookzilla - catalogo de libros
+After=network-online.target
+Wants=network-online.target
+# No arrancar hasta que el disco de datos (Laboratorio #5 / Nota parcial 1) esté montado.
+RequiresMountsFor=/mnt/datos
+
+[Service]
+User=bookzilla
+# data/ e images/ son relativas al directorio de trabajo: quedan en el disco de datos,
+# separadas del disco del sistema operativo.
+WorkingDirectory=/mnt/datos/bookzilla
+ExecStart=/opt/bookzilla/bookzilla
+Environment=PORT=8080
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

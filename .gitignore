@@ -4,6 +4,7 @@
 *.exe
 *.out
 
-# Carpetas de runtime (se autogestionan al arrancar)
+# Carpetas de runtime: la app las crea al arrancar copiando seed/.
+# No se versionan para no subir libros de prueba ni portadas sueltas.
+/data/
 /images/
-data/*.tmp
