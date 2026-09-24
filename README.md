@@ -5,6 +5,15 @@ edición y baja desde la interfaz web, con portadas subidas por el usuario.
 Plantillas y estáticos van embebidos en el binario (`go:embed`); los datos y las
 imágenes viven en carpetas externas y Bootstrap está vendorizado (funciona sin internet).
 
+## Repositorio
+
+El código vive en <https://github.com/lyc4nthrope/Bookzilla>. Para clonarlo:
+
+```powershell
+git clone https://github.com/lyc4nthrope/Bookzilla.git
+cd Bookzilla
+```
+
 ## Requisitos
 
 - Go 1.27+
